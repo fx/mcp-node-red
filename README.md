@@ -1,29 +1,60 @@
 # Node-RED MCP Server
 
-MCP server for Node-RED workflow management using stdio transport. Provides tools to get, update, and validate individual Node-RED flows through the Admin API v2.
-
-## Features
-
-- **get_flows**: Retrieve all flows from Node-RED instance
-- **create_flow**: Create new flow using POST /flow
-- **update_flow**: Update specific flow by ID using PUT /flow/:id
-- **validate_flow**: Validate flow configuration without deploying
+MCP server for Node-RED workflow management. Provides AI assistants with tools to read, create, and update your Node-RED flows safely through the Admin API v2.
 
 ## Installation
 
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `~/.config/claude/claude_desktop_config.json` (Linux):
+
+```json
+{
+  "mcpServers": {
+    "node-red": {
+      "command": "npx",
+      "args": ["mcp-node-red"],
+      "env": {
+        "NODE_RED_URL": "http://localhost:1880",
+        "NODE_RED_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop to load the server.
+
+### Claude Code
+
+Create `.mcp.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "node-red": {
+      "command": "npx",
+      "args": ["mcp-node-red"],
+      "env": {
+        "NODE_RED_URL": "http://localhost:1880",
+        "NODE_RED_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+Load the config:
 ```bash
-npm install
-npm run build
+claude --mcp-config .mcp.json
 ```
 
 ## Configuration
 
-Set environment variables:
+### Environment Variables
 
-```bash
-export NODE_RED_URL=http://localhost:1880
-export NODE_RED_TOKEN=your-api-token  # Optional
-```
+- `NODE_RED_URL` (required): Your Node-RED instance URL
+- `NODE_RED_TOKEN` (optional): API token for authentication
 
 ### Node-RED Setup
 
@@ -41,162 +72,72 @@ adminAuth: {
 }
 ```
 
-2. Generate API token (if auth enabled):
+2. Generate API token:
 ```bash
 curl -X POST http://localhost:1880/auth/token \
   -H "Content-Type: application/json" \
   -d '{"client_id":"node-red-admin","grant_type":"password","scope":"*","username":"admin","password":"your-password"}'
 ```
 
-#### Home Assistant Add-on (hassio-addons/addon-node-red)
+#### Home Assistant Add-on
 
-When running Node-RED via Home Assistant add-on, authentication uses Home Assistant credentials with Basic Auth:
+The Home Assistant Node-RED add-on uses Basic Auth with your Home Assistant credentials:
 
 ```bash
-# Test connection with HA credentials
+# Test connection
 curl http://USERNAME:PASSWORD@homeassistant.local:1880/flows
 ```
 
 **Configuration**:
-```bash
-# Use basic auth in URL
-export NODE_RED_URL=http://admin:your-ha-password@192.168.0.232:1880
-# No NODE_RED_TOKEN needed for HA add-on
-```
-
-**Note**: Home Assistant add-on does not use `/auth/token` endpoint. API authentication is handled via HTTP Basic Auth using your Home Assistant credentials.
-
-## Clients
-
-<details>
-<summary>Claude Code</summary>
-
-Create `.mcp.json` in your project (copy from `.mcp.json.example`):
-
-```json
-{
-  "mcpServers": {
-    "node-red": {
-      "command": "node",
-      "args": ["/path/to/mcp-node-red/dist/index.js"],
-      "env": {
-        "NODE_RED_URL": "http://localhost:1880",
-        "NODE_RED_TOKEN": "your-api-token"
-      }
-    }
-  }
-}
-```
-
-Load the config:
-```bash
-claude --mcp-config .mcp.json
-```
-
-</details>
-
-<details>
-<summary>Claude Desktop</summary>
-
-Add to `~/.config/claude-code/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "node-red": {
-      "command": "node",
-      "args": ["/path/to/mcp-node-red/dist/index.js"],
-      "env": {
-        "NODE_RED_URL": "http://localhost:1880",
-        "NODE_RED_TOKEN": "your-api-token"
-      }
-    }
-  }
-}
-```
-
-Or using npx:
-
 ```json
 {
   "mcpServers": {
     "node-red": {
       "command": "npx",
-      "args": ["-y", "mcp-node-red"],
+      "args": ["mcp-node-red"],
       "env": {
-        "NODE_RED_URL": "http://localhost:1880",
-        "NODE_RED_TOKEN": "your-api-token"
+        "NODE_RED_URL": "http://admin:your-ha-password@homeassistant.local:1880"
       }
     }
   }
 }
 ```
 
-Restart Claude Desktop to apply changes.
+Note: No `NODE_RED_TOKEN` needed - credentials are in the URL.
 
-</details>
+## Features
+
+- **get_flows**: Retrieve all flows from your Node-RED instance
+- **create_flow**: Create new flows via POST /flow
+- **update_flow**: Update individual flows via PUT /flow/:id
+- **validate_flow**: Validate flow configuration without deploying
 
 ## Usage
 
-### Get Flows
+Once configured, ask your AI assistant natural language questions:
 
 ```
 Get all flows from my Node-RED instance
 ```
 
-Returns current flows with revision number for optimistic locking.
-
-### Create Flow
-
 ```
-Create a new flow with label "My New Flow"
+Create a new flow with label "Temperature Monitor"
 ```
 
-Creates a new flow using POST /flow endpoint. Flow ID can be provided or will be auto-generated.
-
-**Flow format**:
-```json
-{
-  "id": "optional-id",
-  "label": "My Flow",
-  "nodes": [],
-  "configs": []
-}
+```
+Update flow "flow1" to change its label to "New Name"
 ```
 
-### Update Flow
-
 ```
-Update flow "flow1" with label "New Name"
+Validate this flow configuration: {...}
 ```
 
-Updates specific flow using PUT /flow/:id endpoint. Only affects the specified flow, leaving all other flows untouched.
+## Safety Features
 
-**Flow format**:
-```json
-{
-  "id": "flow1",
-  "label": "My Flow",
-  "nodes": [],
-  "configs": []
-}
-```
-
-### Validate Flow
-
-```
-Validate this flow configuration:
-{
-  "id": "test",
-  "label": "Test Flow",
-  "nodes": []
-}
-```
-
-Checks for:
-- Required fields (id, label)
-- Valid node references
-- Structural integrity
+- **Individual flow updates**: Uses PUT /flow/:id to update only the specified flow
+- **No accidental deletions**: Other flows remain completely untouched
+- **Validation**: All flow configurations are validated before sending to Node-RED
+- **Read-only by default**: Only modifies flows when explicitly requested
 
 ## API Reference
 
@@ -204,126 +145,41 @@ Checks for:
 
 Get all flows from Node-RED.
 
-**Input**: None
-
-**Output**:
-```json
-{
-  "rev": "abc123",
-  "flows": [...]
-}
-```
+**Returns**: `{rev: "...", flows: [...]}`
 
 ### create_flow
 
 Create a new flow using POST /flow.
 
-**Input**:
-- `flow` (string): JSON string containing flow data with format: `{id, label, nodes: [], configs: []}`
+**Input**: Flow data `{id, label, nodes: [], configs: []}`
+**Returns**: `{id: "flow1"}`
 
-**Output**:
-```json
-{
-  "id": "flow1"
-}
-```
-
-**Important**: Flow ID is optional - Node-RED will auto-generate if not provided. Returns 200 or 204 with the flow ID.
+Flow ID is optional - Node-RED will auto-generate if not provided.
 
 ### update_flow
 
 Update specific flow by ID using PUT /flow/:id.
 
 **Input**:
-- `flowId` (string): Flow ID to update
-- `updates` (string): JSON string containing flow data with format: `{id, label, nodes: [], configs: []}`
+- `flowId`: Flow ID to update
+- `updates`: Flow data `{id, label, nodes: [], configs: []}`
 
-**Output**:
-```json
-{
-  "id": "flow1"
-}
-```
+**Returns**: `{id: "flow1"}`
 
-**Important**: This endpoint updates ONLY the specified flow. All other flows remain completely untouched. No risk of destroying unrelated workflows.
+Only affects the specified flow. All other flows remain untouched.
 
 ### validate_flow
 
-Validate flow configuration.
+Validate flow configuration without deploying.
 
-**Input**:
-- `flow` (string): JSON string containing flow data with format: `{id, label, nodes: [], configs: []}`
+**Input**: Flow data `{id, label, nodes: [], configs: []}`
+**Returns**: `{valid: true, errors: []}`
 
-**Output**:
-```json
-{
-  "valid": true,
-  "errors": ["error1", "error2"]
-}
-```
+Checks for required fields, valid node references, and structural integrity.
 
 ## Development
 
-```bash
-# Build
-npm run build
-
-# Watch mode
-npm run dev
-
-# Test
-npm test
-
-# Coverage
-npm run test:coverage
-
-# Lint
-npm run lint
-npm run lint:fix
-
-# Format
-npm run format
-```
-
-## Node-RED Admin API v2
-
-The server uses Admin API v2 endpoints:
-
-### GET /flows
-- Returns all flows: `{rev: "...", flows: [...]}`
-- Headers: `Node-RED-API-Version: v2`, `Authorization`
-
-### POST /flow
-- Creates a new flow
-- Request: `{id, label, nodes: [], configs: []}`
-- Response: 200 or 204 with `{id: "..."}` in body
-- Flow ID is optional - auto-generated if not provided
-
-### PUT /flow/:id
-- Updates a single flow by ID
-- Request: `{id, label, nodes: [], configs: []}`
-- Response: 204 with `{id: "..."}` in body
-- Only affects the specified flow, all other flows remain untouched
-
-## Error Handling
-
-All tools return errors in content:
-
-```json
-{
-  "content": [{
-    "type": "text",
-    "text": "Error: ..."
-  }],
-  "isError": true
-}
-```
-
-Common errors:
-- Invalid JSON in request
-- Flow not found
-- Validation failures
-- Network/API errors
+See [docs/development.md](docs/development.md) for development setup, testing, and contribution guidelines.
 
 ## License
 
