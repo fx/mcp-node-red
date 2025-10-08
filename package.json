@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "prepare": "husky"
   },
   "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
   "author": "",
@@ -30,11 +31,19 @@
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.10.5",
     "@vitest/coverage-v8": "^2.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
     "semantic-release": "^24.2.9",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=20"
+  },
+  "lint-staged": {
+    "*.{js,ts,json,md}": [
+      "biome format --write",
+      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
+    ]
   }
 }
