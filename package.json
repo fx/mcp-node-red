@@ -1,6 +1,6 @@
 {
   "name": "mcp-node-red",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for Node-RED workflow management",
   "type": "module",
   "main": "dist/index.js",
@@ -16,7 +16,13 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
   },
-  "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
+  "keywords": [
+    "mcp",
+    "node-red",
+    "model-context-protocol",
+    "workflow",
+    "automation"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
