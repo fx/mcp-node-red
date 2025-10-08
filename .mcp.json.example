@@ -2,7 +2,7 @@
   "mcpServers": {
     "node-red": {
       "command": "node",
-      "args": ["/absolute/path/to/node-red-mcp-server/dist/index.js"],
+      "args": ["/absolute/path/to/mcp-node-red/dist/index.js"],
       "env": {
         "NODE_RED_URL": "http://localhost:1880"
       }

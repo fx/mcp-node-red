@@ -1,17 +1,17 @@
 {
-  "name": "node-red-mcp-server",
+  "name": "mcp-node-red",
   "version": "1.0.0",
   "description": "MCP server for Node-RED workflow management",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "node-red-mcp-server": "dist/index.js"
+    "mcp-node-red": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
@@ -32,6 +32,6 @@
     "vitest": "^2.1.8"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

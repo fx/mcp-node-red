@@ -78,7 +78,7 @@ Create `.mcp.json` in your project (copy from `.mcp.json.example`):
   "mcpServers": {
     "node-red": {
       "command": "node",
-      "args": ["/path/to/node-red-mcp-server/dist/index.js"],
+      "args": ["/path/to/mcp-node-red/dist/index.js"],
       "env": {
         "NODE_RED_URL": "http://localhost:1880",
         "NODE_RED_TOKEN": "your-api-token"
@@ -105,7 +105,7 @@ Add to `~/.config/claude-code/claude_desktop_config.json`:
   "mcpServers": {
     "node-red": {
       "command": "node",
-      "args": ["/path/to/node-red-mcp-server/dist/index.js"],
+      "args": ["/path/to/mcp-node-red/dist/index.js"],
       "env": {
         "NODE_RED_URL": "http://localhost:1880",
         "NODE_RED_TOKEN": "your-api-token"
@@ -122,7 +122,7 @@ Or using npx:
   "mcpServers": {
     "node-red": {
       "command": "npx",
-      "args": ["-y", "node-red-mcp-server"],
+      "args": ["-y", "mcp-node-red"],
       "env": {
         "NODE_RED_URL": "http://localhost:1880",
         "NODE_RED_TOKEN": "your-api-token"
