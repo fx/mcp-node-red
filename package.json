@@ -42,7 +42,7 @@
   },
   "lint-staged": {
     "*.{js,ts,json,md}": [
-      "biome format --write",
+      "biome format --write --files-ignore-unknown=true",
       "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
     ]
   }

@@ -4,7 +4,23 @@ MCP server for Node-RED workflow management. Provides AI assistants with tools t
 
 ## Installation
 
-### Claude Desktop
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+**Standalone Node-RED:**
+```bash
+claude mcp add node-red -e NODE_RED_URL=http://localhost:1880 -e NODE_RED_TOKEN=your-api-token -- npx mcp-node-red
+```
+
+**Home Assistant Add-on (Basic Auth):**
+```bash
+claude mcp add node-red -e NODE_RED_URL=http://username:password@homeassistant.local:1880 -- npx mcp-node-red
+```
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `~/.config/claude/claude_desktop_config.json` (Linux):
 
@@ -25,29 +41,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 
 Restart Claude Desktop to load the server.
 
-### Claude Code
-
-Create `.mcp.json` in your project:
-
-```json
-{
-  "mcpServers": {
-    "node-red": {
-      "command": "npx",
-      "args": ["mcp-node-red"],
-      "env": {
-        "NODE_RED_URL": "http://localhost:1880",
-        "NODE_RED_TOKEN": "your-api-token"
-      }
-    }
-  }
-}
-```
-
-Load the config:
-```bash
-claude --mcp-config .mcp.json
-```
+</details>
 
 ## Configuration
 
@@ -138,44 +132,6 @@ Validate this flow configuration: {...}
 - **No accidental deletions**: Other flows remain completely untouched
 - **Validation**: All flow configurations are validated before sending to Node-RED
 - **Read-only by default**: Only modifies flows when explicitly requested
-
-## API Reference
-
-### get_flows
-
-Get all flows from Node-RED.
-
-**Returns**: `{rev: "...", flows: [...]}`
-
-### create_flow
-
-Create a new flow using POST /flow.
-
-**Input**: Flow data `{id, label, nodes: [], configs: []}`
-**Returns**: `{id: "flow1"}`
-
-Flow ID is optional - Node-RED will auto-generate if not provided.
-
-### update_flow
-
-Update specific flow by ID using PUT /flow/:id.
-
-**Input**:
-- `flowId`: Flow ID to update
-- `updates`: Flow data `{id, label, nodes: [], configs: []}`
-
-**Returns**: `{id: "flow1"}`
-
-Only affects the specified flow. All other flows remain untouched.
-
-### validate_flow
-
-Validate flow configuration without deploying.
-
-**Input**: Flow data `{id, label, nodes: [], configs: []}`
-**Returns**: `{valid: true, errors: []}`
-
-Checks for required fields, valid node references, and structural integrity.
 
 ## Development
 
