@@ -16,13 +16,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
   },
-  "keywords": [
-    "mcp",
-    "node-red",
-    "model-context-protocol",
-    "workflow",
-    "automation"
-  ],
+  "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
   "author": "",
   "license": "MIT",
   "dependencies": {
