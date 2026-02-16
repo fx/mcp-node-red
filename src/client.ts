@@ -1,6 +1,12 @@
 import { request } from 'undici';
 import { z } from 'zod';
-import type { Config, FlowState, NodeModule, NodeRedFlowsResponse, UpdateFlowRequest } from './schemas.js';
+import type {
+  Config,
+  FlowState,
+  NodeModule,
+  NodeRedFlowsResponse,
+  UpdateFlowRequest,
+} from './schemas.js';
 import { FlowStateSchema, NodeModuleSchema, NodeRedFlowsResponseSchema } from './schemas.js';
 
 export class NodeRedClient {

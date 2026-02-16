@@ -3,7 +3,11 @@ import type { NodeRedClient } from '../src/client.js';
 import { deleteFlow } from '../src/tools/delete-flow.js';
 import { getFlowState } from '../src/tools/get-flow-state.js';
 import { getFlows } from '../src/tools/get-flows.js';
+import { getNodes } from '../src/tools/get-nodes.js';
+import { installNode } from '../src/tools/install-node.js';
+import { removeNodeModule } from '../src/tools/remove-node-module.js';
 import { setFlowState } from '../src/tools/set-flow-state.js';
+import { setNodeModuleState } from '../src/tools/set-node-module-state.js';
 import { updateFlow } from '../src/tools/update-flow.js';
 import { validateFlow } from '../src/tools/validate-flow.js';
 
@@ -18,6 +22,10 @@ describe('Tool Handlers', () => {
       validateFlow: vi.fn(),
       getFlowState: vi.fn(),
       setFlowState: vi.fn(),
+      getNodes: vi.fn(),
+      installNode: vi.fn(),
+      setNodeModuleState: vi.fn(),
+      removeNodeModule: vi.fn(),
     } as any;
   });
 
@@ -196,6 +204,128 @@ describe('Tool Handlers', () => {
 
     it('should throw error when state is missing', async () => {
       await expect(setFlowState(mockClient, {})).rejects.toThrow();
+    });
+  });
+
+  describe('getNodes', () => {
+    it('should return formatted node modules', async () => {
+      const mockModules = [
+        {
+          name: 'node-red-contrib-example',
+          version: '1.0.0',
+          nodes: {
+            example: {
+              id: 'node-red-contrib-example/example',
+              name: 'example',
+              types: ['example-node'],
+              enabled: true,
+              module: 'node-red-contrib-example',
+            },
+          },
+        },
+      ];
+
+      vi.mocked(mockClient.getNodes).mockResolvedValue(mockModules);
+
+      const result = await getNodes(mockClient);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      expect(JSON.parse(result.content[0].text)).toEqual(mockModules);
+    });
+
+    it('should handle empty modules list', async () => {
+      vi.mocked(mockClient.getNodes).mockResolvedValue([]);
+
+      const result = await getNodes(mockClient);
+
+      expect(JSON.parse(result.content[0].text)).toEqual([]);
+    });
+  });
+
+  describe('installNode', () => {
+    it('should install node module', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {},
+      };
+
+      vi.mocked(mockClient.installNode).mockResolvedValue(mockModule);
+
+      const result = await installNode(mockClient, { module: 'node-red-contrib-example' });
+
+      expect(mockClient.installNode).toHaveBeenCalledWith('node-red-contrib-example');
+      expect(JSON.parse(result.content[0].text)).toEqual(mockModule);
+    });
+
+    it('should throw on missing module argument', async () => {
+      await expect(installNode(mockClient, {})).rejects.toThrow();
+    });
+  });
+
+  describe('setNodeModuleState', () => {
+    it('should enable a module', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {},
+      };
+
+      vi.mocked(mockClient.setNodeModuleState).mockResolvedValue(mockModule);
+
+      const result = await setNodeModuleState(mockClient, {
+        module: 'node-red-contrib-example',
+        enabled: true,
+      });
+
+      expect(mockClient.setNodeModuleState).toHaveBeenCalledWith('node-red-contrib-example', true);
+      expect(JSON.parse(result.content[0].text)).toEqual(mockModule);
+    });
+
+    it('should disable a module', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {},
+      };
+
+      vi.mocked(mockClient.setNodeModuleState).mockResolvedValue(mockModule);
+
+      const result = await setNodeModuleState(mockClient, {
+        module: 'node-red-contrib-example',
+        enabled: false,
+      });
+
+      expect(mockClient.setNodeModuleState).toHaveBeenCalledWith('node-red-contrib-example', false);
+      expect(JSON.parse(result.content[0].text)).toEqual(mockModule);
+    });
+
+    it('should throw on missing module argument', async () => {
+      await expect(setNodeModuleState(mockClient, { enabled: true })).rejects.toThrow();
+    });
+
+    it('should throw on missing enabled argument', async () => {
+      await expect(
+        setNodeModuleState(mockClient, { module: 'node-red-contrib-example' })
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('removeNodeModule', () => {
+    it('should remove node module', async () => {
+      vi.mocked(mockClient.removeNodeModule).mockResolvedValue(undefined);
+
+      const result = await removeNodeModule(mockClient, { module: 'node-red-contrib-example' });
+
+      expect(mockClient.removeNodeModule).toHaveBeenCalledWith('node-red-contrib-example');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(true);
+      expect(parsed.module).toBe('node-red-contrib-example');
+    });
+
+    it('should throw on missing module argument', async () => {
+      await expect(removeNodeModule(mockClient, {})).rejects.toThrow();
     });
   });
 });
