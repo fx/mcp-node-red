@@ -356,48 +356,48 @@ Estimated new tests: ~60-80 test cases across the three test files.
   - [x] Add client tests for `deleteFlow` (success, 404)
   - [x] Add tool handler tests for `delete_flow`
   - [x] Update server test to verify new tool appears in tool listing
-- [ ] Add flow state tools: `get_flow_state`, `set_flow_state`
-  - [ ] Add `FlowStateSchema` to `src/schemas.ts`
-  - [ ] Add `getFlowState()` and `setFlowState(state)` methods to `src/client.ts`
-  - [ ] Create `src/tools/get-flow-state.ts` and `src/tools/set-flow-state.ts`
-  - [ ] Register both tools in `src/server.ts`
-  - [ ] Add client tests (success, runtimeState-disabled 400 error)
-  - [ ] Add tool handler tests
-- [ ] Add node module management tools: `get_nodes`, `install_node`, `set_node_module_state`, `remove_node_module`
-  - [ ] Add `NodeSetSchema`, `NodeModuleSchema` to `src/schemas.ts`
-  - [ ] Add `getNodes()`, `installNode(module)`, `setNodeModuleState(module, enabled)`, `removeNodeModule(module)` to `src/client.ts`
-  - [ ] Create `src/tools/get-nodes.ts`
-  - [ ] Create `src/tools/install-node.ts`
-  - [ ] Create `src/tools/set-node-module-state.ts`
-  - [ ] Create `src/tools/remove-node-module.ts`
-  - [ ] Register all 4 tools in `src/server.ts`
-  - [ ] Add client tests for all 4 methods (success, 404, 400 errors)
-  - [ ] Add tool handler tests for all 4 tools
-- [ ] Add context store tools: `get_context`, `delete_context`
-  - [ ] Add `getContext(scope, id?, key?, store?)` and `deleteContext(scope, id?, key, store?)` to `src/client.ts`
-  - [ ] Create `src/tools/get-context.ts` with scope/id/key arg validation
-  - [ ] Create `src/tools/delete-context.ts` with scope/id/key arg validation
-  - [ ] Register both tools in `src/server.ts`
-  - [ ] Add client tests for all scope variants (global, global/key, flow/:id, flow/:id/key, node/:id, node/:id/key) and delete variants
-  - [ ] Add tool handler tests including arg validation (id required for flow/node scope)
-- [ ] Add runtime info tools: `get_settings`, `get_diagnostics`
-  - [ ] Add `NodeRedSettingsSchema` and `NodeRedDiagnosticsSchema` to `src/schemas.ts`
-  - [ ] Add `getSettings()` and `getDiagnostics()` to `src/client.ts`
-  - [ ] Create `src/tools/get-settings.ts` and `src/tools/get-diagnostics.ts`
-  - [ ] Register both tools in `src/server.ts`
-  - [ ] Add client and tool handler tests
-- [ ] Add node-specific trigger tools: `trigger_inject`, `set_debug_state`
-  - [ ] Add `triggerInject(nodeId)` and `setDebugNodeState(nodeId, enabled)` to `src/client.ts`
-  - [ ] Create `src/tools/trigger-inject.ts`
-  - [ ] Create `src/tools/set-debug-state.ts`
-  - [ ] Register both tools in `src/server.ts`
-  - [ ] Add client tests (success, 404 not found, 500 node error for inject)
-  - [ ] Add tool handler tests
-- [ ] Update documentation and CLAUDE.md
-  - [ ] Update CLAUDE.md project overview to reflect new tool count
-  - [ ] Update CLAUDE.md architecture section with new tools and API endpoints
-  - [ ] Update CLAUDE.md "ALWAYS Use MCP Tools" section with full tool list
-  - [ ] Update README.md with new tool descriptions and usage examples
+- [x] Add flow state tools: `get_flow_state`, `set_flow_state`
+  - [x] Add `FlowStateSchema` to `src/schemas.ts`
+  - [x] Add `getFlowState()` and `setFlowState(state)` methods to `src/client.ts`
+  - [x] Create `src/tools/get-flow-state.ts` and `src/tools/set-flow-state.ts`
+  - [x] Register both tools in `src/server.ts`
+  - [x] Add client tests (success, runtimeState-disabled 400 error)
+  - [x] Add tool handler tests
+- [x] Add node module management tools: `get_nodes`, `install_node`, `set_node_module_state`, `remove_node_module`
+  - [x] Add `NodeSetSchema`, `NodeModuleSchema` to `src/schemas.ts`
+  - [x] Add `getNodes()`, `installNode(module)`, `setNodeModuleState(module, enabled)`, `removeNodeModule(module)` to `src/client.ts`
+  - [x] Create `src/tools/get-nodes.ts`
+  - [x] Create `src/tools/install-node.ts`
+  - [x] Create `src/tools/set-node-module-state.ts`
+  - [x] Create `src/tools/remove-node-module.ts`
+  - [x] Register all 4 tools in `src/server.ts`
+  - [x] Add client tests for all 4 methods (success, 404, 400 errors)
+  - [x] Add tool handler tests for all 4 tools
+- [x] Add context store tools: `get_context`, `delete_context`
+  - [x] Add `getContext(scope, id?, key?, store?)` and `deleteContext(scope, id?, key, store?)` to `src/client.ts`
+  - [x] Create `src/tools/get-context.ts` with scope/id/key arg validation
+  - [x] Create `src/tools/delete-context.ts` with scope/id/key arg validation
+  - [x] Register both tools in `src/server.ts`
+  - [x] Add client tests for all scope variants (global, global/key, flow/:id, flow/:id/key, node/:id, node/:id/key) and delete variants
+  - [x] Add tool handler tests including arg validation (id required for flow/node scope)
+- [x] Add runtime info tools: `get_settings`, `get_diagnostics`
+  - [x] Add `NodeRedSettingsSchema` and `NodeRedDiagnosticsSchema` to `src/schemas.ts`
+  - [x] Add `getSettings()` and `getDiagnostics()` to `src/client.ts`
+  - [x] Create `src/tools/get-settings.ts` and `src/tools/get-diagnostics.ts`
+  - [x] Register both tools in `src/server.ts`
+  - [x] Add client and tool handler tests
+- [x] Add node-specific trigger tools: `trigger_inject`, `set_debug_state`
+  - [x] Add `triggerInject(nodeId)` and `setDebugNodeState(nodeId, enabled)` to `src/client.ts`
+  - [x] Create `src/tools/trigger-inject.ts`
+  - [x] Create `src/tools/set-debug-state.ts`
+  - [x] Register both tools in `src/server.ts`
+  - [x] Add client tests (success, 404 not found, 500 node error for inject)
+  - [x] Add tool handler tests
+- [x] Update documentation and CLAUDE.md
+  - [x] Update CLAUDE.md project overview to reflect new tool count
+  - [x] Update CLAUDE.md architecture section with new tools and API endpoints
+  - [x] Update CLAUDE.md "ALWAYS Use MCP Tools" section with full tool list
+  - [x] Update README.md with new tool descriptions and usage examples
 
 ## Open Questions
 

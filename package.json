@@ -41,7 +41,7 @@
     "node": ">=20"
   },
   "lint-staged": {
-    "*.{js,ts,json,md}": [
+    "*.{js,ts,json}": [
       "biome format --write --files-ignore-unknown=true",
       "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
     ]
