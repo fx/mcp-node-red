@@ -1,6 +1,6 @@
 # Node-RED MCP Server
 
-MCP server for Node-RED workflow management. Provides AI assistants with tools to read, create, and update your Node-RED flows safely through the Admin API v2.
+MCP server for Node-RED workflow management. Provides AI assistants with 17 tools to manage flows, node modules, context stores, and runtime settings through the Node-RED Admin API v2.
 
 ## Installation
 
@@ -101,10 +101,34 @@ Note: No `NODE_RED_TOKEN` needed - credentials are in the URL.
 
 ## Features
 
+### Flow Management
 - **get_flows**: Retrieve all flows from your Node-RED instance
 - **create_flow**: Create new flows via POST /flow
-- **update_flow**: Update individual flows via PUT /flow/:id
+- **update_flow**: Update individual flows safely via PUT /flow/:id
 - **validate_flow**: Validate flow configuration without deploying
+- **delete_flow**: Delete a flow and all its nodes by ID
+
+### Runtime Control
+- **get_flow_state**: Get runtime state of flows (started/stopped)
+- **set_flow_state**: Start or stop all flows in the runtime
+
+### Node Module Management
+- **get_nodes**: List all installed node modules with versions and status
+- **install_node**: Install a node module from the npm registry
+- **set_node_module_state**: Enable or disable an installed node module
+- **remove_node_module**: Uninstall a node module from Node-RED
+
+### Context Store
+- **get_context**: Read context data at global, flow, or node scope
+- **delete_context**: Delete context values at any scope
+
+### Runtime Info
+- **get_settings**: Get Node-RED runtime settings including version
+- **get_diagnostics**: Get system diagnostics (Node.js, OS, memory)
+
+### Node Interaction
+- **trigger_inject**: Trigger an inject node (same as clicking the button)
+- **set_debug_state**: Enable or disable a debug node's output
 
 ## Usage
 
@@ -123,7 +147,27 @@ Update flow "flow1" to change its label to "New Name"
 ```
 
 ```
-Validate this flow configuration: {...}
+Delete the flow with ID "flow1"
+```
+
+```
+What node modules are installed?
+```
+
+```
+Install the node-red-contrib-mqtt module
+```
+
+```
+Trigger the inject node to test my flow
+```
+
+```
+Show me the global context data
+```
+
+```
+Get the Node-RED runtime settings and version
 ```
 
 ## Safety Features
@@ -132,6 +176,8 @@ Validate this flow configuration: {...}
 - **No accidental deletions**: Other flows remain completely untouched
 - **Validation**: All flow configurations are validated before sending to Node-RED
 - **Read-only by default**: Only modifies flows when explicitly requested
+- **Module management guards**: Core modules cannot be removed; enable/disable is reversible
+- **Scoped context operations**: Context reads and deletes are scoped to specific keys
 
 ## Development
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP (Model Context Protocol) server that provides Node-RED workflow management capabilities via stdio transport. Exposes 4 tools for AI agents to interact with Node-RED Admin API v2: get flows, create flow, update flow, and validate flow.
+MCP (Model Context Protocol) server that provides Node-RED workflow management capabilities via stdio transport. Exposes 17 tools for AI agents to interact with Node-RED Admin API v2, covering flow management, runtime control, node module management, context store operations, runtime info, and node interaction.
 
 ## Commands
 
@@ -41,7 +41,7 @@ npm run format
 **Server Layer** (`src/server.ts`):
 - Creates MCP server using `@modelcontextprotocol/sdk`
 - Reads config from env vars: `NODE_RED_URL` (required), `NODE_RED_TOKEN` (optional)
-- Registers 4 MCP tools with schemas (get_flows, create_flow, update_flow, validate_flow)
+- Registers 17 MCP tools with schemas across 6 categories: flow management, runtime control, node module management, context store, runtime info, and node interaction
 - Routes tool calls to individual tool handlers
 - Catches errors and returns MCP-formatted error responses
 
@@ -57,8 +57,12 @@ npm run format
 - Each tool is a standalone async function
 - Takes `NodeRedClient` instance and tool arguments
 - Returns MCP tool response format: `{ content: [{ type: 'text', text: '...' }] }`
-- `create-flow.ts` uses POST /flow to create new flows
-- `update-flow.ts` uses PUT /flow/:id to update individual flows safely
+- Flow management: `get-flows.ts`, `create-flow.ts` (POST /flow), `update-flow.ts` (PUT /flow/:id), `validate-flow.ts`, `delete-flow.ts` (DELETE /flow/:id)
+- Runtime control: `get-flow-state.ts` (GET /flows/state), `set-flow-state.ts` (POST /flows/state)
+- Node modules: `get-nodes.ts` (GET /nodes), `install-node.ts` (POST /nodes), `set-node-module-state.ts` (PUT /nodes/:module), `remove-node-module.ts` (DELETE /nodes/:module)
+- Context store: `get-context.ts` (GET /context/:scope), `delete-context.ts` (DELETE /context/:scope/:id/:key)
+- Runtime info: `get-settings.ts` (GET /settings), `get-diagnostics.ts` (GET /diagnostics)
+- Node interaction: `trigger-inject.ts` (POST /inject/:id), `set-debug-state.ts` (POST /debug/:id/:state)
 
 **Schemas** (`src/schemas.ts`):
 - Zod schemas for validation
@@ -81,6 +85,8 @@ npm run format
 
 ## Node-RED Admin API v2
 
+### Flow Management
+
 **GET /flows**:
 - Returns all flows: `{rev: "...", flows: [...]}`
 
@@ -96,12 +102,80 @@ npm run format
 - Response: 204 with `{id: "..."}` in body
 - Only affects the specified flow, all other flows remain untouched
 
+**DELETE /flow/:id**:
+- Deletes a flow and all its nodes
+- Response: 204 (no content)
+- 404 if flow not found
+
+### Runtime Control
+
+**GET /flows/state**:
+- Returns runtime state: `{state: "start"|"stop"}`
+- Requires `runtimeState.enabled: true` in Node-RED settings
+
+**POST /flows/state**:
+- Start or stop all flows
+- Request: `{state: "start"|"stop"}`
+- Response: 200 with `{state: "..."}`
+
+### Node Module Management
+
+**GET /nodes**:
+- Returns array of installed node module objects with node sets
+
+**POST /nodes**:
+- Install a node module from npm
+- Request: `{module: "node-red-contrib-foo"}`
+- Response: 200 with node module object
+
+**PUT /nodes/:module**:
+- Enable or disable a node module
+- Request: `{enabled: true|false}`
+- Response: 200 with node module object
+
+**DELETE /nodes/:module**:
+- Remove an installed node module
+- Response: 204
+- 400 if core module, 404 if not found
+
+### Context Store
+
+**GET /context/global**, **GET /context/flow/:id**, **GET /context/node/:id**:
+- Returns all context keys for the given scope
+- Append `/:key` to get a specific value
+- Optional `?store=` query param for specific context store
+
+**DELETE /context/:scope/:id/:key**:
+- Delete a context value
+- Response: 204
+
+### Runtime Info
+
+**GET /settings**:
+- Returns runtime settings: `{httpNodeRoot, version, user, ...}`
+
+**GET /diagnostics**:
+- Returns diagnostic info: `{nodejs, os, runtime, modules, ...}`
+
+### Node Interaction
+
+**POST /inject/:id**:
+- Trigger an inject node (same as clicking the button in editor)
+- Response: 200
+- 404 if node not found
+
+**POST /debug/:id/:state**:
+- Enable or disable a debug node (`state` = "enable" or "disable")
+- Response: 200 (enable) or 201 (disable)
+
 ## Testing
 
-Tests use vitest with mocked `undici` requests. Each component has dedicated test file:
-- `tests/client.test.ts` - HTTP client + auth modes
-- `tests/tools.test.ts` - Tool handlers
-- `tests/server.test.ts` - MCP server setup
+Tests use vitest with mocked `undici` requests. Each component has dedicated test files:
+- `tests/client.test.ts` - HTTP client + auth modes + flow/node/context/runtime methods
+- `tests/client-runtime.test.ts` - Runtime and node management client methods
+- `tests/tools.test.ts` - Tool handlers for all 17 tools
+- `tests/tools-runtime.test.ts` - Runtime and node management tool handlers
+- `tests/server.test.ts` - MCP server setup and tool listing
 
 ## CRITICAL: Flow Update Safety
 
@@ -129,7 +203,7 @@ The MCP server uses `PUT /flow/:id` which:
 
 - NEVER use `curl` to call Node-RED API directly
 - NEVER use Bash to make HTTP requests to Node-RED
-- ALWAYS use the MCP tools: `get_flows`, `create_flow`, `update_flow`, `validate_flow`
+- ALWAYS use the MCP tools: `get_flows`, `create_flow`, `update_flow`, `validate_flow`, `delete_flow`, `get_flow_state`, `set_flow_state`, `get_nodes`, `install_node`, `set_node_module_state`, `remove_node_module`, `get_context`, `delete_context`, `get_settings`, `get_diagnostics`, `trigger_inject`, `set_debug_state`
 
 The entire purpose of this MCP server is to provide safe, validated access to Node-RED through MCP tools. Bypassing them defeats the purpose and removes safety checks.
 
