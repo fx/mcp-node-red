@@ -348,9 +348,7 @@ describe('NodeRedClient', () => {
         },
       } as any);
 
-      await expect(client.setFlowState('start')).rejects.toThrow(
-        'Failed to set flow state: 500'
-      );
+      await expect(client.setFlowState('start')).rejects.toThrow('Failed to set flow state: 500');
     });
   });
 
