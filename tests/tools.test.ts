@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeRedClient } from '../src/client.js';
 import { deleteFlow } from '../src/tools/delete-flow.js';
+import { getFlowState } from '../src/tools/get-flow-state.js';
 import { getFlows } from '../src/tools/get-flows.js';
+import { setFlowState } from '../src/tools/set-flow-state.js';
 import { updateFlow } from '../src/tools/update-flow.js';
 import { validateFlow } from '../src/tools/validate-flow.js';
 
@@ -14,6 +16,8 @@ describe('Tool Handlers', () => {
       updateFlow: vi.fn(),
       deleteFlow: vi.fn(),
       validateFlow: vi.fn(),
+      getFlowState: vi.fn(),
+      setFlowState: vi.fn(),
     } as any;
   });
 
@@ -140,6 +144,58 @@ describe('Tool Handlers', () => {
       expect(parsed.valid).toBe(false);
       expect(parsed.errors).toBeDefined();
       expect(parsed.errors[0]).toContain('Invalid JSON');
+    });
+  });
+
+  describe('getFlowState', () => {
+    it('should return flow state', async () => {
+      vi.mocked(mockClient.getFlowState).mockResolvedValue({ state: 'start' });
+
+      const result = await getFlowState(mockClient);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe('start');
+    });
+
+    it('should return stopped state', async () => {
+      vi.mocked(mockClient.getFlowState).mockResolvedValue({ state: 'stop' });
+
+      const result = await getFlowState(mockClient);
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe('stop');
+    });
+  });
+
+  describe('setFlowState', () => {
+    it('should set state to stop', async () => {
+      vi.mocked(mockClient.setFlowState).mockResolvedValue({ state: 'stop' });
+
+      const result = await setFlowState(mockClient, { state: 'stop' });
+
+      expect(mockClient.setFlowState).toHaveBeenCalledWith('stop');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe('stop');
+    });
+
+    it('should set state to start', async () => {
+      vi.mocked(mockClient.setFlowState).mockResolvedValue({ state: 'start' });
+
+      const result = await setFlowState(mockClient, { state: 'start' });
+
+      expect(mockClient.setFlowState).toHaveBeenCalledWith('start');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe('start');
+    });
+
+    it('should throw error for invalid state', async () => {
+      await expect(setFlowState(mockClient, { state: 'invalid' })).rejects.toThrow();
+    });
+
+    it('should throw error when state is missing', async () => {
+      await expect(setFlowState(mockClient, {})).rejects.toThrow();
     });
   });
 });

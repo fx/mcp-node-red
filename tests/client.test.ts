@@ -230,6 +230,130 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('getFlowState', () => {
+    it('should get flow state successfully', async () => {
+      const mockState = { state: 'start' };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockState),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.getFlowState();
+
+      expect(result).toEqual(mockState);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flows/state', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should throw error when runtimeState is disabled (400)', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 400,
+        body: {
+          text: vi.fn().mockResolvedValue('runtimeState not enabled'),
+        },
+      } as any);
+
+      await expect(client.getFlowState()).rejects.toThrow('Failed to get flow state: 400');
+    });
+
+    it('should throw error on server error', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.getFlowState()).rejects.toThrow('Failed to get flow state: 500');
+    });
+  });
+
+  describe('setFlowState', () => {
+    it('should set flow state to stop', async () => {
+      const mockState = { state: 'stop' };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockState),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.setFlowState('stop');
+
+      expect(result).toEqual(mockState);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flows/state', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify({ state: 'stop' }),
+      });
+    });
+
+    it('should set flow state to start', async () => {
+      const mockState = { state: 'start' };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockState),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.setFlowState('start');
+
+      expect(result).toEqual(mockState);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flows/state', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify({ state: 'start' }),
+      });
+    });
+
+    it('should throw error when runtimeState is disabled (400)', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 400,
+        body: {
+          text: vi.fn().mockResolvedValue('runtimeState not enabled'),
+        },
+      } as any);
+
+      await expect(client.setFlowState('stop')).rejects.toThrow('Failed to set flow state: 400');
+    });
+
+    it('should throw error on server error', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.setFlowState('start')).rejects.toThrow(
+        'Failed to set flow state: 500'
+      );
+    });
+  });
+
   describe('Basic Auth', () => {
     it('should extract credentials from URL', () => {
       const clientWithAuth = new NodeRedClient({
