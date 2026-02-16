@@ -192,8 +192,8 @@ export const NodeRedDiagnosticsSchema = z.object({
 
 Each new tool follows the established pattern:
 1. Define a Zod schema for MCP tool arguments
-2. Export an async function taking `(client: NodeRedClient, args?: unknown)`
-3. Parse args with Zod, call client method, return `{content: [{type: 'text', text: JSON.stringify(...)}]}`
+2. Export an async function taking `client: NodeRedClient` and, for tools that accept arguments, a second parameter `args: unknown`
+3. Parse args with Zod (when present), call client method, return `{content: [{type: 'text', text: JSON.stringify(...)}]}`
 
 #### New Tool Files
 
