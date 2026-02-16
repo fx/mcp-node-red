@@ -44,6 +44,10 @@ export const UpdateFlowRequestSchema = z.object({
   configs: z.array(NodeRedConfigSchema).optional(),
 });
 
+export const FlowStateSchema = z.object({
+  state: z.enum(['start', 'stop']),
+});
+
 export const ConfigSchema = z.object({
   nodeRedUrl: z.string().url(),
   nodeRedToken: z.string().optional(),
@@ -55,4 +59,5 @@ export type NodeRedConfig = z.infer<typeof NodeRedConfigSchema>;
 export type NodeRedItem = z.infer<typeof NodeRedItemSchema>;
 export type NodeRedFlowsResponse = z.infer<typeof NodeRedFlowsResponseSchema>;
 export type UpdateFlowRequest = z.infer<typeof UpdateFlowRequestSchema>;
+export type FlowState = z.infer<typeof FlowStateSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
