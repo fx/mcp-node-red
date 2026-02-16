@@ -10,5 +10,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks',
+    exclude: ['node_modules', 'dist', '.tailscale'],
   },
 });

@@ -136,6 +136,39 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('deleteFlow', () => {
+    it('should delete flow successfully', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      await client.deleteFlow('flow-1');
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flow/flow-1', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should throw error when flow not found', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: {
+          text: vi.fn().mockResolvedValue('Not Found'),
+        },
+      } as any);
+
+      await expect(client.deleteFlow('nonexistent')).rejects.toThrow('Failed to delete flow: 404');
+    });
+  });
+
   describe('validateFlow', () => {
     it('should validate flow successfully', async () => {
       const validFlow = {

@@ -4,6 +4,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { NodeRedClient } from './client.js';
 import { ConfigSchema } from './schemas.js';
 import { createFlow } from './tools/create-flow.js';
+import { deleteFlow } from './tools/delete-flow.js';
 import { getFlows } from './tools/get-flows.js';
 import { updateFlow } from './tools/update-flow.js';
 import { validateFlow } from './tools/validate-flow.js';
@@ -98,6 +99,20 @@ export function createServer() {
           required: ['flow'],
         },
       },
+      {
+        name: 'delete_flow',
+        description: 'Delete a flow from Node-RED by ID. Removes the flow and all its nodes.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flowId: {
+              type: 'string',
+              description: 'ID of the flow to delete',
+            },
+          },
+          required: ['flowId'],
+        },
+      },
     ],
   }));
 
@@ -112,6 +127,8 @@ export function createServer() {
           return await updateFlow(client, request.params.arguments);
         case 'validate_flow':
           return await validateFlow(client, request.params.arguments);
+        case 'delete_flow':
+          return await deleteFlow(client, request.params.arguments);
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
