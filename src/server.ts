@@ -7,7 +7,11 @@ import { createFlow } from './tools/create-flow.js';
 import { deleteFlow } from './tools/delete-flow.js';
 import { getFlowState } from './tools/get-flow-state.js';
 import { getFlows } from './tools/get-flows.js';
+import { getNodes } from './tools/get-nodes.js';
+import { installNode } from './tools/install-node.js';
+import { removeNodeModule } from './tools/remove-node-module.js';
 import { setFlowState } from './tools/set-flow-state.js';
+import { setNodeModuleState } from './tools/set-node-module-state.js';
 import { updateFlow } from './tools/update-flow.js';
 import { validateFlow } from './tools/validate-flow.js';
 
@@ -140,6 +144,62 @@ export function createServer() {
           required: ['state'],
         },
       },
+      {
+        name: 'get_nodes',
+        description:
+          'Get all installed node modules from Node-RED. Returns array of node module objects with their node sets.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'install_node',
+        description: 'Install a new node module into Node-RED. Installs from the npm registry.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            module: {
+              type: 'string',
+              description: 'Name of the npm module to install (e.g. "node-red-contrib-example")',
+            },
+          },
+          required: ['module'],
+        },
+      },
+      {
+        name: 'set_node_module_state',
+        description:
+          'Enable or disable a node module in Node-RED. When disabled, the module nodes are unavailable.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            module: {
+              type: 'string',
+              description: 'Name of the node module to enable/disable',
+            },
+            enabled: {
+              type: 'boolean',
+              description: 'Whether to enable (true) or disable (false) the module',
+            },
+          },
+          required: ['module', 'enabled'],
+        },
+      },
+      {
+        name: 'remove_node_module',
+        description: 'Remove an installed node module from Node-RED. Cannot remove core modules.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            module: {
+              type: 'string',
+              description: 'Name of the node module to remove',
+            },
+          },
+          required: ['module'],
+        },
+      },
     ],
   }));
 
@@ -160,6 +220,14 @@ export function createServer() {
           return await getFlowState(client);
         case 'set_flow_state':
           return await setFlowState(client, request.params.arguments);
+        case 'get_nodes':
+          return await getNodes(client);
+        case 'install_node':
+          return await installNode(client, request.params.arguments);
+        case 'set_node_module_state':
+          return await setNodeModuleState(client, request.params.arguments);
+        case 'remove_node_module':
+          return await removeNodeModule(client, request.params.arguments);
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }

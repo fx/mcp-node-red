@@ -1,6 +1,13 @@
 import { request } from 'undici';
-import type { Config, FlowState, NodeRedFlowsResponse, UpdateFlowRequest } from './schemas.js';
-import { FlowStateSchema, NodeRedFlowsResponseSchema } from './schemas.js';
+import { z } from 'zod';
+import type {
+  Config,
+  FlowState,
+  NodeModule,
+  NodeRedFlowsResponse,
+  UpdateFlowRequest,
+} from './schemas.js';
+import { FlowStateSchema, NodeModuleSchema, NodeRedFlowsResponseSchema } from './schemas.js';
 
 export class NodeRedClient {
   private readonly baseUrl: string;
@@ -165,6 +172,67 @@ export class NodeRedClient {
         valid: false,
         errors: [error instanceof Error ? error.message : String(error)],
       };
+    }
+  }
+
+  async getNodes(): Promise<NodeModule[]> {
+    const headers = this.getHeaders();
+    headers.Accept = 'application/json';
+    const response = await request(`${this.baseUrl}/nodes`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to get nodes: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return z.array(NodeModuleSchema).parse(data);
+  }
+
+  async installNode(module: string): Promise<NodeModule> {
+    const response = await request(`${this.baseUrl}/nodes`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ module }),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to install node module: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return NodeModuleSchema.parse(data);
+  }
+
+  async setNodeModuleState(module: string, enabled: boolean): Promise<NodeModule> {
+    const response = await request(`${this.baseUrl}/nodes/${module}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ enabled }),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to set node module state: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return NodeModuleSchema.parse(data);
+  }
+
+  async removeNodeModule(module: string): Promise<void> {
+    const response = await request(`${this.baseUrl}/nodes/${module}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 204) {
+      const body = await response.body.text();
+      throw new Error(`Failed to remove node module: ${response.statusCode}\n${body}`);
     }
   }
 }

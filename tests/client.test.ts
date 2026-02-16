@@ -383,4 +383,244 @@ describe('NodeRedClient', () => {
       });
     });
   });
+
+  describe('getNodes', () => {
+    it('should fetch nodes successfully', async () => {
+      const mockModules = [
+        {
+          name: 'node-red-contrib-example',
+          version: '1.0.0',
+          nodes: {
+            example: {
+              id: 'node-red-contrib-example/example',
+              name: 'example',
+              types: ['example-node'],
+              enabled: true,
+              module: 'node-red-contrib-example',
+            },
+          },
+        },
+      ];
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockModules),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.getNodes();
+
+      expect(result).toEqual(mockModules);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/nodes', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    it('should throw error on failed request', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.getNodes()).rejects.toThrow('Failed to get nodes: 500');
+    });
+  });
+
+  describe('installNode', () => {
+    it('should install node module successfully', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {
+          example: {
+            id: 'node-red-contrib-example/example',
+            name: 'example',
+            types: ['example-node'],
+            enabled: true,
+            module: 'node-red-contrib-example',
+          },
+        },
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockModule),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.installNode('node-red-contrib-example');
+
+      expect(result).toEqual(mockModule);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/nodes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify({ module: 'node-red-contrib-example' }),
+      });
+    });
+
+    it('should throw error on failed install', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 400,
+        body: {
+          text: vi.fn().mockResolvedValue('Module not found'),
+        },
+      } as any);
+
+      await expect(client.installNode('nonexistent')).rejects.toThrow(
+        'Failed to install node module: 400'
+      );
+    });
+  });
+
+  describe('setNodeModuleState', () => {
+    it('should enable a module', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {
+          example: {
+            id: 'node-red-contrib-example/example',
+            name: 'example',
+            types: ['example-node'],
+            enabled: true,
+            module: 'node-red-contrib-example',
+          },
+        },
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockModule),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.setNodeModuleState('node-red-contrib-example', true);
+
+      expect(result).toEqual(mockModule);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/nodes/node-red-contrib-example', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify({ enabled: true }),
+      });
+    });
+
+    it('should disable a module', async () => {
+      const mockModule = {
+        name: 'node-red-contrib-example',
+        version: '1.0.0',
+        nodes: {
+          example: {
+            id: 'node-red-contrib-example/example',
+            name: 'example',
+            types: ['example-node'],
+            enabled: false,
+            module: 'node-red-contrib-example',
+          },
+        },
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockModule),
+          text: vi.fn(),
+        },
+      } as any);
+
+      await client.setNodeModuleState('node-red-contrib-example', false);
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/nodes/node-red-contrib-example', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify({ enabled: false }),
+      });
+    });
+
+    it('should throw error on failed state change', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 400,
+        body: {
+          text: vi.fn().mockResolvedValue('Cannot disable core module'),
+        },
+      } as any);
+
+      await expect(client.setNodeModuleState('node-red/core', true)).rejects.toThrow(
+        'Failed to set node module state: 400'
+      );
+    });
+  });
+
+  describe('removeNodeModule', () => {
+    it('should remove module successfully', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      await expect(client.removeNodeModule('node-red-contrib-example')).resolves.toBeUndefined();
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/nodes/node-red-contrib-example', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should throw error when removing core module', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 400,
+        body: {
+          text: vi.fn().mockResolvedValue('Cannot remove core module'),
+        },
+      } as any);
+
+      await expect(client.removeNodeModule('node-red/core')).rejects.toThrow(
+        'Failed to remove node module: 400'
+      );
+    });
+
+    it('should throw error when module not found', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: {
+          text: vi.fn().mockResolvedValue('Module not found'),
+        },
+      } as any);
+
+      await expect(client.removeNodeModule('nonexistent')).rejects.toThrow(
+        'Failed to remove node module: 404'
+      );
+    });
+  });
 });
