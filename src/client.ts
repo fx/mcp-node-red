@@ -1,6 +1,6 @@
 import { request } from 'undici';
-import type { Config, NodeRedFlowsResponse, UpdateFlowRequest } from './schemas.js';
-import { NodeRedFlowsResponseSchema } from './schemas.js';
+import type { Config, FlowState, NodeRedFlowsResponse, UpdateFlowRequest } from './schemas.js';
+import { FlowStateSchema, NodeRedFlowsResponseSchema } from './schemas.js';
 
 export class NodeRedClient {
   private readonly baseUrl: string;
@@ -63,7 +63,6 @@ export class NodeRedClient {
       throw new Error(`Failed to create flow: ${response.statusCode}\n${body}`);
     }
 
-    // POST /flow returns 200 or 204 with JSON body containing {id}
     const data = await response.body.json();
     return data as { id: string };
   }
@@ -80,7 +79,6 @@ export class NodeRedClient {
       throw new Error(`Failed to update flow: ${response.statusCode}\n${body}`);
     }
 
-    // PUT /flow/:id returns 204 with JSON body containing {id}
     const data = await response.body.json();
     return data as { id: string };
   }
@@ -95,6 +93,37 @@ export class NodeRedClient {
       const body = await response.body.text();
       throw new Error(`Failed to delete flow: ${response.statusCode}\n${body}`);
     }
+  }
+
+  async getFlowState(): Promise<FlowState> {
+    const response = await request(`${this.baseUrl}/flows/state`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to get flow state: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return FlowStateSchema.parse(data);
+  }
+
+  async setFlowState(state: 'start' | 'stop'): Promise<FlowState> {
+    const response = await request(`${this.baseUrl}/flows/state`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ state }),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to set flow state: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return FlowStateSchema.parse(data);
   }
 
   async validateFlow(flowData: UpdateFlowRequest): Promise<{ valid: boolean; errors?: string[] }> {

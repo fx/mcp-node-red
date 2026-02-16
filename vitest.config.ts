@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -10,6 +10,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks',
-    exclude: ['node_modules', 'dist', '.tailscale'],
+    exclude: [...configDefaults.exclude, '.tailscale'],
   },
 });
