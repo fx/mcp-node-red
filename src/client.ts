@@ -171,6 +171,63 @@ export class NodeRedClient {
     return NodeRedDiagnosticsSchema.parse(data);
   }
 
+  async getContext(
+    scope: 'global' | 'flow' | 'node',
+    id?: string,
+    key?: string,
+    store?: string
+  ): Promise<unknown> {
+    let url = `${this.baseUrl}/context/${scope}`;
+    if (scope !== 'global' && id) {
+      url += `/${id}`;
+    }
+    if (key) {
+      url += `/${key}`;
+    }
+    if (store) {
+      url += `?store=${encodeURIComponent(store)}`;
+    }
+
+    const response = await request(url, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to get context: ${response.statusCode}\n${body}`);
+    }
+
+    return await response.body.json();
+  }
+
+  async deleteContext(
+    scope: 'global' | 'flow' | 'node',
+    id?: string,
+    key?: string,
+    store?: string
+  ): Promise<void> {
+    let url = `${this.baseUrl}/context/${scope}`;
+    if (scope === 'global') {
+      url += `/${key}`;
+    } else {
+      url += `/${id}/${key}`;
+    }
+    if (store) {
+      url += `?store=${encodeURIComponent(store)}`;
+    }
+
+    const response = await request(url, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 204) {
+      const body = await response.body.text();
+      throw new Error(`Failed to delete context: ${response.statusCode}\n${body}`);
+    }
+  }
+
   async validateFlow(flowData: UpdateFlowRequest): Promise<{ valid: boolean; errors?: string[] }> {
     try {
       const errors: string[] = [];

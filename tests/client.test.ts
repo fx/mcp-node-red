@@ -352,6 +352,157 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('getContext', () => {
+    it('should get global context keys', async () => {
+      const mockData = { key1: 'value1', key2: 'value2' };
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue(mockData), text: vi.fn() },
+      } as any);
+
+      const result = await client.getContext('global');
+      expect(result).toEqual(mockData);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/context/global', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should get global context by key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue({ msg: 'hello' }), text: vi.fn() },
+      } as any);
+      await client.getContext('global', undefined, 'myKey');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/global/myKey',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should get flow context by id', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue({ counter: 42 }), text: vi.fn() },
+      } as any);
+      await client.getContext('flow', 'flow-1');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/flow/flow-1',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should get flow context by id and key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue({ value: 'test' }), text: vi.fn() },
+      } as any);
+      await client.getContext('flow', 'flow-1', 'myKey');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/flow/flow-1/myKey',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should get node context by id and key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue({ value: 123 }), text: vi.fn() },
+      } as any);
+      await client.getContext('node', 'node-1', 'count');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/node/node-1/count',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should include store query param', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: { json: vi.fn().mockResolvedValue({}), text: vi.fn() },
+      } as any);
+      await client.getContext('global', undefined, 'myKey', 'file');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/global/myKey?store=file',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should throw error on failed request', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: { text: vi.fn().mockResolvedValue('Not Found') },
+      } as any);
+      await expect(client.getContext('flow', 'bad-id')).rejects.toThrow(
+        'Failed to get context: 404'
+      );
+    });
+  });
+
+  describe('deleteContext', () => {
+    it('should delete global context key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: { text: vi.fn() },
+      } as any);
+      await client.deleteContext('global', undefined, 'myKey');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/global/myKey',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+
+    it('should delete flow context key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: { text: vi.fn() },
+      } as any);
+      await client.deleteContext('flow', 'flow-1', 'counter');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/flow/flow-1/counter',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+
+    it('should delete node context key', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: { text: vi.fn() },
+      } as any);
+      await client.deleteContext('node', 'node-1', 'data');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/node/node-1/data',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+
+    it('should include store query param on delete', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: { text: vi.fn() },
+      } as any);
+      await client.deleteContext('global', undefined, 'myKey', 'file');
+      expect(request).toHaveBeenCalledWith(
+        'http://localhost:1880/context/global/myKey?store=file',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+
+    it('should throw error on failed delete', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: { text: vi.fn().mockResolvedValue('Not Found') },
+      } as any);
+      await expect(client.deleteContext('flow', 'bad-id', 'key')).rejects.toThrow(
+        'Failed to delete context: 404'
+      );
+    });
+  });
+
   describe('Basic Auth', () => {
     it('should extract credentials from URL', () => {
       const clientWithAuth = new NodeRedClient({
