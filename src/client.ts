@@ -85,6 +85,18 @@ export class NodeRedClient {
     return data as { id: string };
   }
 
+  async deleteFlow(flowId: string): Promise<void> {
+    const response = await request(`${this.baseUrl}/flow/${flowId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 204) {
+      const body = await response.body.text();
+      throw new Error(`Failed to delete flow: ${response.statusCode}\n${body}`);
+    }
+  }
+
   async validateFlow(flowData: UpdateFlowRequest): Promise<{ valid: boolean; errors?: string[] }> {
     try {
       const errors: string[] = [];

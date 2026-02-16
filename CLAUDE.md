@@ -145,3 +145,5 @@ Required env var: `NODE_RED_URL`
 Optional env var: `NODE_RED_TOKEN`
 
 For Home Assistant add-on deployments, embed credentials in URL: `http://username:password@host:1880`
+
+**Task Completion:** Every PR must mark completed task(s) as done (`- [x]`) in the relevant tracking file (`docs/PROJECT.md` or the spec file in `docs/specs/`). Include the task-list update in the PR.

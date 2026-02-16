@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeRedClient } from '../src/client.js';
+import { deleteFlow } from '../src/tools/delete-flow.js';
 import { getFlows } from '../src/tools/get-flows.js';
 import { updateFlow } from '../src/tools/update-flow.js';
 import { validateFlow } from '../src/tools/validate-flow.js';
@@ -11,6 +12,7 @@ describe('Tool Handlers', () => {
     mockClient = {
       getFlows: vi.fn(),
       updateFlow: vi.fn(),
+      deleteFlow: vi.fn(),
       validateFlow: vi.fn(),
     } as any;
   });
@@ -69,6 +71,33 @@ describe('Tool Handlers', () => {
       });
 
       expect(mockClient.updateFlow).toHaveBeenCalledWith('1', expect.objectContaining({ id: '1' }));
+    });
+  });
+
+  describe('deleteFlow', () => {
+    it('should delete flow and return confirmation', async () => {
+      vi.mocked(mockClient.deleteFlow).mockResolvedValue(undefined);
+
+      const result = await deleteFlow(mockClient, { flowId: 'flow-1' });
+
+      expect(mockClient.deleteFlow).toHaveBeenCalledWith('flow-1');
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      expect(JSON.parse(result.content[0].text)).toEqual({ deleted: 'flow-1' });
+    });
+
+    it('should throw error for missing flowId', async () => {
+      await expect(deleteFlow(mockClient, {})).rejects.toThrow();
+    });
+
+    it('should propagate client errors', async () => {
+      vi.mocked(mockClient.deleteFlow).mockRejectedValue(
+        new Error('Failed to delete flow: 404\nNot Found')
+      );
+
+      await expect(deleteFlow(mockClient, { flowId: 'nonexistent' })).rejects.toThrow(
+        'Failed to delete flow: 404'
+      );
     });
   });
 
