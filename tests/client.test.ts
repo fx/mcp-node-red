@@ -503,6 +503,109 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('triggerInject', () => {
+    it('should trigger inject node successfully', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      await client.triggerInject('node-123');
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/inject/node-123', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should throw error when inject node not found', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: {
+          text: vi.fn().mockResolvedValue('Not Found'),
+        },
+      } as any);
+
+      await expect(client.triggerInject('missing-node')).rejects.toThrow(
+        'Failed to trigger inject node: 404'
+      );
+    });
+
+    it('should throw error on server error', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.triggerInject('node-123')).rejects.toThrow(
+        'Failed to trigger inject node: 500'
+      );
+    });
+  });
+
+  describe('setDebugNodeState', () => {
+    it('should enable debug node successfully', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      await client.setDebugNodeState('debug-1', true);
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/debug/debug-1/enable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should disable debug node successfully', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 201,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      await client.setDebugNodeState('debug-1', false);
+
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/debug/debug-1/disable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+      });
+    });
+
+    it('should throw error on failure', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 404,
+        body: {
+          text: vi.fn().mockResolvedValue('Not Found'),
+        },
+      } as any);
+
+      await expect(client.setDebugNodeState('debug-1', true)).rejects.toThrow(
+        'Failed to enable debug node: 404'
+      );
+    });
+  });
+
   describe('Basic Auth', () => {
     it('should extract credentials from URL', () => {
       const clientWithAuth = new NodeRedClient({
