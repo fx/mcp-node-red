@@ -228,6 +228,32 @@ export class NodeRedClient {
     }
   }
 
+  async triggerInject(nodeId: string): Promise<void> {
+    const response = await request(`${this.baseUrl}/inject/${nodeId}`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to trigger inject node: ${response.statusCode}\n${body}`);
+    }
+  }
+
+  async setDebugNodeState(nodeId: string, enabled: boolean): Promise<void> {
+    const action = enabled ? 'enable' : 'disable';
+    const response = await request(`${this.baseUrl}/debug/${nodeId}/${action}`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+
+    // enable returns 200, disable returns 201
+    if (response.statusCode !== 200 && response.statusCode !== 201) {
+      const body = await response.body.text();
+      throw new Error(`Failed to ${action} debug node: ${response.statusCode}\n${body}`);
+    }
+  }
+
   async validateFlow(flowData: UpdateFlowRequest): Promise<{ valid: boolean; errors?: string[] }> {
     try {
       const errors: string[] = [];

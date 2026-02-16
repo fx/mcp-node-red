@@ -8,8 +8,10 @@ import { getFlows } from '../src/tools/get-flows.js';
 import { getNodes } from '../src/tools/get-nodes.js';
 import { installNode } from '../src/tools/install-node.js';
 import { removeNodeModule } from '../src/tools/remove-node-module.js';
+import { setDebugState } from '../src/tools/set-debug-state.js';
 import { setFlowState } from '../src/tools/set-flow-state.js';
 import { setNodeModuleState } from '../src/tools/set-node-module-state.js';
+import { triggerInject } from '../src/tools/trigger-inject.js';
 import { updateFlow } from '../src/tools/update-flow.js';
 import { validateFlow } from '../src/tools/validate-flow.js';
 
@@ -30,6 +32,8 @@ describe('Tool Handlers', () => {
       installNode: vi.fn(),
       setNodeModuleState: vi.fn(),
       removeNodeModule: vi.fn(),
+      triggerInject: vi.fn(),
+      setDebugNodeState: vi.fn(),
     } as any;
   });
 
@@ -430,6 +434,76 @@ describe('Tool Handlers', () => {
 
     it('should throw on missing module argument', async () => {
       await expect(removeNodeModule(mockClient, {})).rejects.toThrow();
+    });
+  });
+
+  describe('triggerInject', () => {
+    it('should trigger inject node and return confirmation', async () => {
+      vi.mocked(mockClient.triggerInject).mockResolvedValue(undefined);
+
+      const result = await triggerInject(mockClient, { nodeId: 'inject-1' });
+
+      expect(mockClient.triggerInject).toHaveBeenCalledWith('inject-1');
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toEqual({ nodeId: 'inject-1', triggered: true });
+    });
+
+    it('should throw on missing nodeId', async () => {
+      await expect(triggerInject(mockClient, {})).rejects.toThrow();
+    });
+
+    it('should propagate client errors', async () => {
+      vi.mocked(mockClient.triggerInject).mockRejectedValue(
+        new Error('Failed to trigger inject node: 404\nNot Found')
+      );
+
+      await expect(triggerInject(mockClient, { nodeId: 'nonexistent' })).rejects.toThrow(
+        'Failed to trigger inject node: 404'
+      );
+    });
+  });
+
+  describe('setDebugState', () => {
+    it('should enable debug node and return confirmation', async () => {
+      vi.mocked(mockClient.setDebugNodeState).mockResolvedValue(undefined);
+
+      const result = await setDebugState(mockClient, { nodeId: 'debug-1', enabled: true });
+
+      expect(mockClient.setDebugNodeState).toHaveBeenCalledWith('debug-1', true);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toEqual({ nodeId: 'debug-1', enabled: true });
+    });
+
+    it('should disable debug node', async () => {
+      vi.mocked(mockClient.setDebugNodeState).mockResolvedValue(undefined);
+
+      const result = await setDebugState(mockClient, { nodeId: 'debug-1', enabled: false });
+
+      expect(mockClient.setDebugNodeState).toHaveBeenCalledWith('debug-1', false);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toEqual({ nodeId: 'debug-1', enabled: false });
+    });
+
+    it('should throw on missing nodeId', async () => {
+      await expect(setDebugState(mockClient, { enabled: true })).rejects.toThrow();
+    });
+
+    it('should throw on missing enabled', async () => {
+      await expect(setDebugState(mockClient, { nodeId: 'debug-1' })).rejects.toThrow();
+    });
+
+    it('should propagate client errors', async () => {
+      vi.mocked(mockClient.setDebugNodeState).mockRejectedValue(
+        new Error('Failed to enable debug node: 404\nNot Found')
+      );
+
+      await expect(
+        setDebugState(mockClient, { nodeId: 'nonexistent', enabled: true })
+      ).rejects.toThrow('Failed to enable debug node: 404');
     });
   });
 });

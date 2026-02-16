@@ -14,8 +14,10 @@ import { getNodes } from './tools/get-nodes.js';
 import { getSettings } from './tools/get-settings.js';
 import { installNode } from './tools/install-node.js';
 import { removeNodeModule } from './tools/remove-node-module.js';
+import { setDebugState } from './tools/set-debug-state.js';
 import { setFlowState } from './tools/set-flow-state.js';
 import { setNodeModuleState } from './tools/set-node-module-state.js';
+import { triggerInject } from './tools/trigger-inject.js';
 import { updateFlow } from './tools/update-flow.js';
 import { validateFlow } from './tools/validate-flow.js';
 
@@ -277,6 +279,40 @@ export function createServer() {
           properties: {},
         },
       },
+      {
+        name: 'trigger_inject',
+        description:
+          'Trigger an inject node to fire with its configured values. The node must be a deployed inject node.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            nodeId: {
+              type: 'string',
+              description: 'ID of the inject node to trigger',
+            },
+          },
+          required: ['nodeId'],
+        },
+      },
+      {
+        name: 'set_debug_state',
+        description:
+          'Enable or disable a debug node. When disabled, the debug node will not produce output.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            nodeId: {
+              type: 'string',
+              description: 'ID of the debug node',
+            },
+            enabled: {
+              type: 'boolean',
+              description: 'Whether to enable (true) or disable (false) the debug node',
+            },
+          },
+          required: ['nodeId', 'enabled'],
+        },
+      },
     ],
   }));
 
@@ -313,6 +349,10 @@ export function createServer() {
           return await getSettings(client);
         case 'get_diagnostics':
           return await getDiagnostics(client);
+        case 'trigger_inject':
+          return await triggerInject(client, request.params.arguments);
+        case 'set_debug_state':
+          return await setDebugState(client, request.params.arguments);
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
