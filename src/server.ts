@@ -4,7 +4,9 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { NodeRedClient } from './client.js';
 import { ConfigSchema } from './schemas.js';
 import { createFlow } from './tools/create-flow.js';
+import { deleteContext } from './tools/delete-context.js';
 import { deleteFlow } from './tools/delete-flow.js';
+import { getContext } from './tools/get-context.js';
 import { getDiagnostics } from './tools/get-diagnostics.js';
 import { getFlowState } from './tools/get-flow-state.js';
 import { getFlows } from './tools/get-flows.js';
@@ -147,6 +149,61 @@ export function createServer() {
         },
       },
       {
+        name: 'get_context',
+        description:
+          'Read context store data at global, flow, or node scope. Omit key to list all keys.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            scope: {
+              type: 'string',
+              enum: ['global', 'flow', 'node'],
+              description: 'Context scope to read from',
+            },
+            id: {
+              type: 'string',
+              description: 'Flow or node ID (required for flow and node scope)',
+            },
+            key: {
+              type: 'string',
+              description: 'Context key to read. Omit to list all keys.',
+            },
+            store: {
+              type: 'string',
+              description: 'Optional context store name',
+            },
+          },
+          required: ['scope'],
+        },
+      },
+      {
+        name: 'delete_context',
+        description: 'Delete a context store value at global, flow, or node scope.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            scope: {
+              type: 'string',
+              enum: ['global', 'flow', 'node'],
+              description: 'Context scope to delete from',
+            },
+            id: {
+              type: 'string',
+              description: 'Flow or node ID (required for flow and node scope)',
+            },
+            key: {
+              type: 'string',
+              description: 'Context key to delete',
+            },
+            store: {
+              type: 'string',
+              description: 'Optional context store name',
+            },
+          },
+          required: ['scope', 'key'],
+        },
+      },
+      {
         name: 'get_nodes',
         description:
           'Get all installed node modules from Node-RED. Returns array of node module objects with their node sets.',
@@ -240,6 +297,10 @@ export function createServer() {
           return await getFlowState(client);
         case 'set_flow_state':
           return await setFlowState(client, request.params.arguments);
+        case 'get_context':
+          return await getContext(client, request.params.arguments);
+        case 'delete_context':
+          return await deleteContext(client, request.params.arguments);
         case 'get_nodes':
           return await getNodes(client);
         case 'install_node':

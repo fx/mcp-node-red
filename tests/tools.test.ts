@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeRedClient } from '../src/client.js';
+import { deleteContext } from '../src/tools/delete-context.js';
 import { deleteFlow } from '../src/tools/delete-flow.js';
+import { getContext } from '../src/tools/get-context.js';
 import { getFlowState } from '../src/tools/get-flow-state.js';
 import { getFlows } from '../src/tools/get-flows.js';
 import { getNodes } from '../src/tools/get-nodes.js';
@@ -17,6 +19,8 @@ describe('Tool Handlers', () => {
   beforeEach(() => {
     mockClient = {
       getFlows: vi.fn(),
+      getContext: vi.fn(),
+      deleteContext: vi.fn(),
       updateFlow: vi.fn(),
       deleteFlow: vi.fn(),
       validateFlow: vi.fn(),
@@ -309,6 +313,106 @@ describe('Tool Handlers', () => {
       await expect(
         setNodeModuleState(mockClient, { module: 'node-red-contrib-example' })
       ).rejects.toThrow();
+    });
+  });
+
+  describe('getContext', () => {
+    it('should get global context', async () => {
+      const mockData = { key1: 'value1' };
+      vi.mocked(mockClient.getContext).mockResolvedValue(mockData);
+      const result = await getContext(mockClient, { scope: 'global' });
+      expect(mockClient.getContext).toHaveBeenCalledWith('global', undefined, undefined, undefined);
+      expect(JSON.parse(result.content[0].text)).toEqual(mockData);
+    });
+
+    it('should get global context with key', async () => {
+      vi.mocked(mockClient.getContext).mockResolvedValue({ value: 'test' });
+      await getContext(mockClient, { scope: 'global', key: 'myKey' });
+      expect(mockClient.getContext).toHaveBeenCalledWith('global', undefined, 'myKey', undefined);
+    });
+
+    it('should get flow context with id', async () => {
+      vi.mocked(mockClient.getContext).mockResolvedValue({});
+      await getContext(mockClient, { scope: 'flow', id: 'flow-1' });
+      expect(mockClient.getContext).toHaveBeenCalledWith('flow', 'flow-1', undefined, undefined);
+    });
+
+    it('should get node context with id and key', async () => {
+      vi.mocked(mockClient.getContext).mockResolvedValue({ count: 5 });
+      await getContext(mockClient, { scope: 'node', id: 'node-1', key: 'count' });
+      expect(mockClient.getContext).toHaveBeenCalledWith('node', 'node-1', 'count', undefined);
+    });
+
+    it('should pass store parameter', async () => {
+      vi.mocked(mockClient.getContext).mockResolvedValue({});
+      await getContext(mockClient, { scope: 'global', key: 'myKey', store: 'file' });
+      expect(mockClient.getContext).toHaveBeenCalledWith('global', undefined, 'myKey', 'file');
+    });
+
+    it('should throw error when flow scope missing id', async () => {
+      await expect(getContext(mockClient, { scope: 'flow' })).rejects.toThrow(
+        'id is required when scope is "flow"'
+      );
+    });
+
+    it('should throw error when node scope missing id', async () => {
+      await expect(getContext(mockClient, { scope: 'node' })).rejects.toThrow(
+        'id is required when scope is "node"'
+      );
+    });
+
+    it('should throw error for invalid scope', async () => {
+      await expect(getContext(mockClient, { scope: 'invalid' })).rejects.toThrow();
+    });
+  });
+
+  describe('deleteContext', () => {
+    it('should delete global context key', async () => {
+      vi.mocked(mockClient.deleteContext).mockResolvedValue(undefined);
+      const result = await deleteContext(mockClient, { scope: 'global', key: 'myKey' });
+      expect(mockClient.deleteContext).toHaveBeenCalledWith(
+        'global',
+        undefined,
+        'myKey',
+        undefined
+      );
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(true);
+      expect(parsed.message).toContain('myKey');
+    });
+
+    it('should delete flow context key', async () => {
+      vi.mocked(mockClient.deleteContext).mockResolvedValue(undefined);
+      await deleteContext(mockClient, { scope: 'flow', id: 'flow-1', key: 'counter' });
+      expect(mockClient.deleteContext).toHaveBeenCalledWith('flow', 'flow-1', 'counter', undefined);
+    });
+
+    it('should delete node context key', async () => {
+      vi.mocked(mockClient.deleteContext).mockResolvedValue(undefined);
+      await deleteContext(mockClient, { scope: 'node', id: 'node-1', key: 'data' });
+      expect(mockClient.deleteContext).toHaveBeenCalledWith('node', 'node-1', 'data', undefined);
+    });
+
+    it('should pass store parameter on delete', async () => {
+      vi.mocked(mockClient.deleteContext).mockResolvedValue(undefined);
+      await deleteContext(mockClient, { scope: 'global', key: 'myKey', store: 'file' });
+      expect(mockClient.deleteContext).toHaveBeenCalledWith('global', undefined, 'myKey', 'file');
+    });
+
+    it('should throw error when flow scope missing id', async () => {
+      await expect(deleteContext(mockClient, { scope: 'flow', key: 'counter' })).rejects.toThrow(
+        'id is required when scope is "flow"'
+      );
+    });
+
+    it('should throw error when node scope missing id', async () => {
+      await expect(deleteContext(mockClient, { scope: 'node', key: 'data' })).rejects.toThrow(
+        'id is required when scope is "node"'
+      );
+    });
+
+    it('should throw error when key is missing', async () => {
+      await expect(deleteContext(mockClient, { scope: 'global' })).rejects.toThrow();
     });
   });
 
