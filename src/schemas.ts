@@ -71,6 +71,31 @@ export const NodeModuleSchema = z
   })
   .passthrough();
 
+export const NodeRedSettingsSchema = z
+  .object({
+    httpNodeRoot: z.string().optional(),
+    version: z.string().optional(),
+    user: z
+      .object({
+        username: z.string(),
+        permissions: z.string(),
+      })
+      .optional(),
+  })
+  .passthrough();
+
+export const NodeRedDiagnosticsSchema = z
+  .object({
+    report: z.string().optional(),
+    scope: z.string().optional(),
+    nodejs: z.unknown().optional(),
+    os: z.unknown().optional(),
+    runtime: z.unknown().optional(),
+    modules: z.unknown().optional(),
+    settings: z.unknown().optional(),
+  })
+  .passthrough();
+
 export const ConfigSchema = z.object({
   nodeRedUrl: z.string().url(),
   nodeRedToken: z.string().optional(),
@@ -85,4 +110,6 @@ export type UpdateFlowRequest = z.infer<typeof UpdateFlowRequestSchema>;
 export type FlowState = z.infer<typeof FlowStateSchema>;
 export type NodeSet = z.infer<typeof NodeSetSchema>;
 export type NodeModule = z.infer<typeof NodeModuleSchema>;
+export type NodeRedSettings = z.infer<typeof NodeRedSettingsSchema>;
+export type NodeRedDiagnostics = z.infer<typeof NodeRedDiagnosticsSchema>;
 export type Config = z.infer<typeof ConfigSchema>;

@@ -4,10 +4,18 @@ import type {
   Config,
   FlowState,
   NodeModule,
+  NodeRedDiagnostics,
   NodeRedFlowsResponse,
+  NodeRedSettings,
   UpdateFlowRequest,
 } from './schemas.js';
-import { FlowStateSchema, NodeModuleSchema, NodeRedFlowsResponseSchema } from './schemas.js';
+import {
+  FlowStateSchema,
+  NodeModuleSchema,
+  NodeRedDiagnosticsSchema,
+  NodeRedFlowsResponseSchema,
+  NodeRedSettingsSchema,
+} from './schemas.js';
 
 export class NodeRedClient {
   private readonly baseUrl: string;
@@ -131,6 +139,36 @@ export class NodeRedClient {
 
     const data = await response.body.json();
     return FlowStateSchema.parse(data);
+  }
+
+  async getSettings(): Promise<NodeRedSettings> {
+    const response = await request(`${this.baseUrl}/settings`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to get settings: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return NodeRedSettingsSchema.parse(data);
+  }
+
+  async getDiagnostics(): Promise<NodeRedDiagnostics> {
+    const response = await request(`${this.baseUrl}/diagnostics`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (response.statusCode !== 200) {
+      const body = await response.body.text();
+      throw new Error(`Failed to get diagnostics: ${response.statusCode}\n${body}`);
+    }
+
+    const data = await response.body.json();
+    return NodeRedDiagnosticsSchema.parse(data);
   }
 
   async validateFlow(flowData: UpdateFlowRequest): Promise<{ valid: boolean; errors?: string[] }> {

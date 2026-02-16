@@ -5,9 +5,11 @@ import { NodeRedClient } from './client.js';
 import { ConfigSchema } from './schemas.js';
 import { createFlow } from './tools/create-flow.js';
 import { deleteFlow } from './tools/delete-flow.js';
+import { getDiagnostics } from './tools/get-diagnostics.js';
 import { getFlowState } from './tools/get-flow-state.js';
 import { getFlows } from './tools/get-flows.js';
 import { getNodes } from './tools/get-nodes.js';
+import { getSettings } from './tools/get-settings.js';
 import { installNode } from './tools/install-node.js';
 import { removeNodeModule } from './tools/remove-node-module.js';
 import { setFlowState } from './tools/set-flow-state.js';
@@ -200,6 +202,24 @@ export function createServer() {
           required: ['module'],
         },
       },
+      {
+        name: 'get_settings',
+        description:
+          'Get the runtime settings of the Node-RED instance. Returns server configuration including version, httpNodeRoot, and user info.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_diagnostics',
+        description:
+          'Get diagnostic information about the Node-RED runtime. Returns system info including Node.js version, OS details, and memory usage.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   }));
 
@@ -228,6 +248,10 @@ export function createServer() {
           return await setNodeModuleState(client, request.params.arguments);
         case 'remove_node_module':
           return await removeNodeModule(client, request.params.arguments);
+        case 'get_settings':
+          return await getSettings(client);
+        case 'get_diagnostics':
+          return await getDiagnostics(client);
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
