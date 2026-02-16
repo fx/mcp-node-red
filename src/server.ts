@@ -5,7 +5,9 @@ import { NodeRedClient } from './client.js';
 import { ConfigSchema } from './schemas.js';
 import { createFlow } from './tools/create-flow.js';
 import { deleteFlow } from './tools/delete-flow.js';
+import { getFlowState } from './tools/get-flow-state.js';
 import { getFlows } from './tools/get-flows.js';
+import { setFlowState } from './tools/set-flow-state.js';
 import { updateFlow } from './tools/update-flow.js';
 import { validateFlow } from './tools/validate-flow.js';
 
@@ -113,6 +115,31 @@ export function createServer() {
           required: ['flowId'],
         },
       },
+      {
+        name: 'get_flow_state',
+        description:
+          'Get the runtime state of Node-RED flows. Returns whether flows are currently started or stopped. Requires runtimeState to be enabled in Node-RED settings.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'set_flow_state',
+        description:
+          'Set the runtime state of Node-RED flows to start or stop them. Requires runtimeState to be enabled in Node-RED settings.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            state: {
+              type: 'string',
+              enum: ['start', 'stop'],
+              description: 'The desired flow state: "start" to run flows, "stop" to halt them',
+            },
+          },
+          required: ['state'],
+        },
+      },
     ],
   }));
 
@@ -129,6 +156,10 @@ export function createServer() {
           return await validateFlow(client, request.params.arguments);
         case 'delete_flow':
           return await deleteFlow(client, request.params.arguments);
+        case 'get_flow_state':
+          return await getFlowState(client);
+        case 'set_flow_state':
+          return await setFlowState(client, request.params.arguments);
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
