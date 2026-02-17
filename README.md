@@ -50,6 +50,23 @@ Restart Claude Desktop to load the server.
 - `NODE_RED_URL` (required): Your Node-RED instance URL
 - `NODE_RED_TOKEN` (optional): API token for authentication
 
+### Environment Files
+
+The server loads environment variables from `.env` and `.env.local` files in the working directory:
+
+- `.env` -- Base defaults (tracked in version control if desired)
+- `.env.local` -- Local overrides (gitignored, never committed)
+
+Precedence (highest to lowest):
+1. Real environment variables (e.g., set via shell or MCP config)
+2. `.env.local`
+3. `.env`
+
+Copy `.env.example` as a starting template:
+```bash
+cp .env.example .env
+```
+
 ### Node-RED Setup
 
 #### Standalone Node-RED
