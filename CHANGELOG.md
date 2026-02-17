@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.1](https://github.com/fx/mcp-node-red/compare/mcp-node-red-v1.1.0...mcp-node-red-v1.1.1) (2026-02-17)
+
+
+### Bug Fixes
+
+* restrict npm package to only dist, README, LICENSE, CHANGELOG ([#13](https://github.com/fx/mcp-node-red/issues/13)) ([b1564e6](https://github.com/fx/mcp-node-red/commit/b1564e6dc03eeff04bcb030ceb5bff411bcbaddf))
+
+
+### Miscellaneous
+
+* add workflow_dispatch trigger to release workflow ([629d837](https://github.com/fx/mcp-node-red/commit/629d8375c8539b5a7824981d37e6fc6dce1e631c))
+
 ## [1.1.0](https://github.com/fx/mcp-node-red/compare/mcp-node-red-v1.0.1...mcp-node-red-v1.1.0) (2026-02-17)
 
 
