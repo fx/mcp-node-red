@@ -3,6 +3,7 @@ dist/
 coverage/
 *.log
 .env
+.env.local
 .mcp.json
 .DS_Store
 *.tsbuildinfo
