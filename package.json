@@ -1,6 +1,6 @@
 {
   "name": "mcp-node-red",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP server for Node-RED workflow management",
   "type": "module",
   "main": "dist/index.js",
@@ -17,14 +17,25 @@
     "format": "biome format --write .",
     "prepare": "husky"
   },
-  "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
+  "keywords": [
+    "mcp",
+    "node-red",
+    "model-context-protocol",
+    "workflow",
+    "automation"
+  ],
   "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/fx/mcp-node-red"
   },
-  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^17.3.1",
