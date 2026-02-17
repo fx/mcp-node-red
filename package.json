@@ -20,6 +20,7 @@
   "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
   "author": "",
   "license": "MIT",
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md"],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^17.3.1",
