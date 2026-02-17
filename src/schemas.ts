@@ -67,7 +67,7 @@ export const NodeModuleSchema = z
     version: z.string(),
     local: z.boolean().optional(),
     user: z.boolean().optional(),
-    nodes: z.record(z.string(), NodeSetSchema),
+    nodes: z.union([z.record(z.string(), NodeSetSchema), z.array(NodeSetSchema)]).optional(),
   })
   .passthrough();
 

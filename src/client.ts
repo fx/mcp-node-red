@@ -78,6 +78,9 @@ export class NodeRedClient {
       throw new Error(`Failed to create flow: ${response.statusCode}\n${body}`);
     }
 
+    if (response.statusCode === 204) {
+      return { id: flowData.id };
+    }
     const data = await response.body.json();
     return data as { id: string };
   }
@@ -89,11 +92,14 @@ export class NodeRedClient {
       body: JSON.stringify(flowData),
     });
 
-    if (response.statusCode !== 204) {
+    if (response.statusCode !== 200 && response.statusCode !== 204) {
       const body = await response.body.text();
       throw new Error(`Failed to update flow: ${response.statusCode}\n${body}`);
     }
 
+    if (response.statusCode === 204) {
+      return { id: flowId };
+    }
     const data = await response.body.json();
     return data as { id: string };
   }

@@ -89,8 +89,75 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('createFlow', () => {
+    it('should create flow successfully with 200 response', async () => {
+      const flowData = {
+        id: 'new-flow',
+        label: 'New Flow',
+        nodes: [],
+        configs: [],
+      };
+
+      const mockResponse = { id: 'new-flow' };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockResponse),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.createFlow(flowData);
+
+      expect(result).toEqual(mockResponse);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify(flowData),
+      });
+    });
+
+    it('should handle 204 response by returning flowData id', async () => {
+      const flowData = {
+        id: 'new-flow',
+        label: 'New Flow',
+        nodes: [],
+        configs: [],
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.createFlow(flowData);
+
+      expect(result).toEqual({ id: 'new-flow' });
+    });
+
+    it('should throw error on failed create', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.createFlow({ id: '1', label: 'Test' })).rejects.toThrow(
+        'Failed to create flow: 500'
+      );
+    });
+  });
+
   describe('updateFlow', () => {
-    it('should update flow successfully', async () => {
+    it('should update flow successfully with 200 response', async () => {
       const flowData = {
         id: '1',
         label: 'Updated Flow',
@@ -101,7 +168,7 @@ describe('NodeRedClient', () => {
       const mockResponse = { id: '1' };
 
       vi.mocked(request).mockResolvedValue({
-        statusCode: 204,
+        statusCode: 200,
         body: {
           json: vi.fn().mockResolvedValue(mockResponse),
           text: vi.fn(),
@@ -120,6 +187,26 @@ describe('NodeRedClient', () => {
         },
         body: JSON.stringify(flowData),
       });
+    });
+
+    it('should handle 204 response by returning flowId', async () => {
+      const flowData = {
+        id: '1',
+        label: 'Updated Flow',
+        nodes: [],
+        configs: [],
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.updateFlow('1', flowData);
+
+      expect(result).toEqual({ id: '1' });
     });
 
     it('should throw error on failed update', async () => {
@@ -678,6 +765,42 @@ describe('NodeRedClient', () => {
       });
     });
 
+    it('should handle modules without nodes field', async () => {
+      const mockModules = [
+        {
+          name: 'node-red',
+          version: '4.1.5',
+        },
+        {
+          name: 'node-red-contrib-example',
+          version: '1.0.0',
+          nodes: {
+            example: {
+              id: 'node-red-contrib-example/example',
+              name: 'example',
+              types: ['example-node'],
+              enabled: true,
+              module: 'node-red-contrib-example',
+            },
+          },
+        },
+      ];
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockModules),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.getNodes();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].nodes).toBeUndefined();
+      expect(result[1].nodes).toBeDefined();
+    });
+
     it('should throw error on failed request', async () => {
       vi.mocked(request).mockResolvedValue({
         statusCode: 500,
@@ -743,19 +866,19 @@ describe('NodeRedClient', () => {
   });
 
   describe('setNodeModuleState', () => {
-    it('should enable a module', async () => {
+    it('should enable a module with nodes as array', async () => {
       const mockModule = {
         name: 'node-red-contrib-example',
         version: '1.0.0',
-        nodes: {
-          example: {
+        nodes: [
+          {
             id: 'node-red-contrib-example/example',
             name: 'example',
             types: ['example-node'],
             enabled: true,
             module: 'node-red-contrib-example',
           },
-        },
+        ],
       };
 
       vi.mocked(request).mockResolvedValue({
