@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   release-please:
@@ -35,6 +36,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
+      - run: npm run format
       - run: npm run lint
       - run: npm publish --provenance --access public
         env:

@@ -20,6 +20,11 @@
   "keywords": ["mcp", "node-red", "model-context-protocol", "workflow", "automation"],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fx/mcp-node-red"
+  },
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md"],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^17.3.1",
@@ -39,7 +44,7 @@
     "node": ">=20"
   },
   "lint-staged": {
-    "*.{js,ts,json}": [
+    "*.{js,ts}": [
       "biome format --write --files-ignore-unknown=true",
       "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
     ]

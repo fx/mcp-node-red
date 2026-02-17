@@ -5,7 +5,7 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["dist/**"],
+    "ignore": ["dist/**", "coverage/**"],
     "rules": {
       "recommended": true,
       "suspicious": {
@@ -21,7 +21,7 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100,
-    "ignore": ["dist/**"]
+    "ignore": ["dist/**", "coverage/**", "*.json"]
   },
   "javascript": {
     "formatter": {
