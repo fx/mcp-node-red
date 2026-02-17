@@ -78,6 +78,9 @@ export class NodeRedClient {
       throw new Error(`Failed to create flow: ${response.statusCode}\n${body}`);
     }
 
+    if (response.statusCode === 204) {
+      return { id: flowData.id };
+    }
     const data = await response.body.json();
     return data as { id: string };
   }

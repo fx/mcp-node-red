@@ -89,6 +89,73 @@ describe('NodeRedClient', () => {
     });
   });
 
+  describe('createFlow', () => {
+    it('should create flow successfully with 200 response', async () => {
+      const flowData = {
+        id: 'new-flow',
+        label: 'New Flow',
+        nodes: [],
+        configs: [],
+      };
+
+      const mockResponse = { id: 'new-flow' };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 200,
+        body: {
+          json: vi.fn().mockResolvedValue(mockResponse),
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.createFlow(flowData);
+
+      expect(result).toEqual(mockResponse);
+      expect(request).toHaveBeenCalledWith('http://localhost:1880/flow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Node-RED-API-Version': 'v2',
+          Authorization: 'Bearer test-token',
+        },
+        body: JSON.stringify(flowData),
+      });
+    });
+
+    it('should handle 204 response by returning flowData id', async () => {
+      const flowData = {
+        id: 'new-flow',
+        label: 'New Flow',
+        nodes: [],
+        configs: [],
+      };
+
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 204,
+        body: {
+          text: vi.fn(),
+        },
+      } as any);
+
+      const result = await client.createFlow(flowData);
+
+      expect(result).toEqual({ id: 'new-flow' });
+    });
+
+    it('should throw error on failed create', async () => {
+      vi.mocked(request).mockResolvedValue({
+        statusCode: 500,
+        body: {
+          text: vi.fn().mockResolvedValue('Internal Server Error'),
+        },
+      } as any);
+
+      await expect(client.createFlow({ id: '1', label: 'Test' })).rejects.toThrow(
+        'Failed to create flow: 500'
+      );
+    });
+  });
+
   describe('updateFlow', () => {
     it('should update flow successfully with 200 response', async () => {
       const flowData = {
